@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 
 import org.assertj.core.api.Assertions.assertThat
 
-class TR3818SettingsParserTest {
+class TR3818SettingsPageParserTest {
 
     @Test
     internal fun checkActualFileIsParsed() {

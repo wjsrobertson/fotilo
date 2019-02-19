@@ -22,8 +22,7 @@ object TR3818SettingsParser {
         val settings = parseLines(page)
                 .map { it.split("=") }
                 .filter { it.size == 2 }
-                .map { stripPrefix(it[0]) to stripSuffix(it[1]) }
-                .toMap()
+                .associateBy({ stripPrefix(it[0]) }, { stripSuffix(it[1]) })
 
         return CameraSettings(
                 asInt(settings, Setting.FrameRate),

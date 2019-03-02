@@ -1,0 +1,12 @@
+{
+    "cameras": [
+        {
+            "id": "camera",
+            "host": "example.com",
+            "port": 80,
+            "username": "test",
+            "password": "test",
+            "type": "JPT3815W"
+        }
+    ]
+}

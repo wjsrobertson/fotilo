@@ -7,17 +7,17 @@ import org.apache.http.HttpEntity
 import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.impl.client.CloseableHttpClient
-import org.junit.jupiter.api.Test
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.support.io.TempDirectory
-import java.io.ByteArrayInputStream
-import java.nio.file.Files
-import java.nio.file.Path
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-@ExtendWith(TempDirectory::class)
+import java.io.ByteArrayInputStream
+import org.junit.rules.TemporaryFolder
+import java.nio.file.Files
+
+
 class TR3818CameraControlTest {
 
     private val cameraInfo: CameraInfo = CameraInfo("example.com", 80, "peter", "parker")
@@ -28,7 +28,11 @@ class TR3818CameraControlTest {
 
     private val underTest: TR3818CameraControl = TR3818CameraControl(cameraInfo, httpclient, urls, stopper, settingsPageParser)
 
-    @BeforeEach internal fun setUp() {
+    @Rule
+    @JvmField var folder = TemporaryFolder()
+
+    @Before
+    internal fun setUp() {
         reset(httpclient)
     }
 
@@ -53,10 +57,10 @@ class TR3818CameraControlTest {
     }
 
     @Test
-    internal fun checkSnapshotWritten(@TempDirectory.TempDir tempDirectory: Path) {
-        val file = tempDirectory.resolve("test")
-        snapshotHttpRequest()
+    internal fun checkSnapshotWritten() {
+        val file = folder.newFile("test")!!.toPath()
 
+        snapshotHttpRequest()
         underTest.saveSnapshot(file)
 
         val content = Files.readAllLines(file)[0]

@@ -153,8 +153,8 @@ class TR3818Urls(private val cameraInfo: CameraInfo) {
  * Sends / retrieves HTTP requests to TR3818 web interface
  */
 class TR3818CameraControl(private val cameraInfo: CameraInfo,
-                          private val httpclient: CloseableHttpClient,
-                          private val urls: TR3818Urls,
+                          private val httpclient: CloseableHttpClient = HttpClientFactory.create(cameraInfo),
+                          private val urls: TR3818Urls = TR3818Urls(cameraInfo),
                           private val stopper: ScheduledCameraMovementStopper = ScheduledCameraMovementStopper(),
                           private val settingsPageParser: TR3818SettingsParser = TR3818SettingsParser) : CameraControl, AutoCloseable {
 

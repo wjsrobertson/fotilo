@@ -18,7 +18,7 @@ class VideoStreamController(private val cameraConnectionFactory: CameraConnectio
     @RequestMapping("/stream")
     @Throws(IOException::class)
     fun streamVideo(@RequestParam("camera") cameraId: String, outputStream: OutputStream, response: HttpServletResponse) {
-        val cameraControl = cameraConnectionFactory.getCameraConnection(cameraId)
+        val cameraControl = cameraConnectionFactory.getConnection(cameraId)
         val cameraResponse = cameraControl.getVideoStream()
 
         try {

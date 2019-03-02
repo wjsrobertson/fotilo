@@ -1,7 +1,9 @@
 package net.ylophones.fotilo
 
+import net.ylophones.fotilo.cameras.TR3818CameraControl
 import org.apache.http.client.methods.CloseableHttpResponse
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.nio.file.Path
 
 interface CameraControl {

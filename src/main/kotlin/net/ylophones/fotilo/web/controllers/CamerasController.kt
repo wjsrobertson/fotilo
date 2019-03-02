@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(value = ["/cameras"], produces = ["application/json"])
+@RequestMapping(value = ["/api/cameras"], produces = ["application/json"])
 class CamerasController(private val configFile: ConfigFile) {
 
     @RequestMapping(value = ["", "/"], method = [RequestMethod.GET])

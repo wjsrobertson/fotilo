@@ -11,8 +11,8 @@ data class ConfigFile(val cameras: List<CameraConfig>)
 data class CameraConfig(val id: String,
                         val host: String,
                         val port: Int,
-                        val username: String,
-                        val password: String,
+                        val user: String,
+                        val pass: String,
                         val type: String)
 
 object ConfigFileParser {

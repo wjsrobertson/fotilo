@@ -63,7 +63,7 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
              @PathVariable("direction") direction: String,
              @RequestParam(value = "duration", required = false) duration: Int?): String {
 
-        val moveInDirection = Direction.valueOf(direction)
+        val moveInDirection = Direction.toValue(direction)
 
         if (duration != null) {
             getConnection(cameraId).move(moveInDirection, duration)
@@ -84,14 +84,14 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
     @RequestMapping(value = ["/{cameraId}/settings/flip/{rotation}"], method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun flip(@PathVariable("cameraId") cameraId: String, @PathVariable("rotation") rotation: String): String {
-        getConnection(cameraId).flip(Rotation.valueOf(rotation))
+        getConnection(cameraId).flip(Rotation.toValue(rotation))
         return SUCCESS
     }
 
     @RequestMapping(value = ["/{cameraId}/settings/orientation/{orientation}"], method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun setOrientation(@PathVariable("cameraId") cameraId: String, @PathVariable("orientation") orientation: String): String {
-        getConnection(cameraId).oritentation(Orientation.valueOf(orientation))
+        getConnection(cameraId).oritentation(Orientation.toValue(orientation))
         return SUCCESS
     }
 

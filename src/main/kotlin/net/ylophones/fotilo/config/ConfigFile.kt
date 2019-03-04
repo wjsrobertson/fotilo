@@ -9,10 +9,11 @@ import java.nio.file.Paths
 data class ConfigFile(val cameras: List<CameraConfig>)
 
 data class CameraConfig(val id: String,
+                        val name: String,
                         val host: String,
                         val port: Int,
-                        val user: String,
-                        val pass: String,
+                        val username: String,
+                        val password: String,
                         val type: String)
 
 object ConfigFileParser {

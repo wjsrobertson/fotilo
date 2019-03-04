@@ -42,19 +42,31 @@ enum class Direction {
     DOWN,
     DOWN_RIGHT,
     DOWN_LEFT,
-    RIGHT
+    RIGHT;
+
+    companion object {
+        fun toValue(str: String) = Direction.values().find { it.name.toLowerCase() == str.toLowerCase() } ?: LEFT
+    }
 }
 
 enum class Rotation {
     VERTICAL,
     HORIZONTAL;
+
+    companion object {
+        fun toValue(str: String) = Rotation.values().find { it.name.toLowerCase() == str.toLowerCase() } ?: VERTICAL
+    }
 }
 
 enum class Orientation {
     NORMAL,
     FLIP,
     MIRROR,
-    FLIP_AND_MIRROR
+    FLIP_AND_MIRROR;
+
+    companion object {
+        fun toValue(str: String) = Orientation.values().find { it.name.toLowerCase() == str.toLowerCase() } ?: NORMAL
+    }
 }
 
 data class CameraInfo(val host: String, val port: Int, val user: String, val pass: String)

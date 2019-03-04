@@ -22,7 +22,7 @@ class CameraConnectionFactory(private val configFile: ConfigFile) {
                 ?: throw IllegalArgumentException("Invalid camera ID $cameraId")
 
         val cameraInfo = with(cameraConfig) {
-            CameraInfo(host, port, user, pass)
+            CameraInfo(host, port, username, password)
         }
 
         return when (cameraConfig.type) {

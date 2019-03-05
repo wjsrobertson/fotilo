@@ -106,8 +106,8 @@ interface CameraControl {
  */
 class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
                                 private val cameraDefinition: CameraDefinition,
-                                private val urls: CameraUrls = TR3818Urls(cameraInfo),
-                                private val settingsPageParser: SettingsParser = TR3818SettingsParser,
+                                private val urls: CameraUrls,
+                                private val settingsPageParser: SettingsParser,
                                 private val httpclient: CloseableHttpClient = HttpClientFactory.create(cameraInfo),
                                 private val stopper: ScheduledCameraMovementStopper = ScheduledCameraMovementStopper()) : CameraControl, AutoCloseable {
 

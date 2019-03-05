@@ -24,8 +24,8 @@ class CameraConnectionFactory(private val configFile: ConfigFile) {
         }
 
         return when (cameraConfig.type) {
-            "TR3818" -> HttpGetBasedCameraControl(cameraInfo, tr3818Definition)
-            "JPT3815W"-> HttpGetBasedCameraControl(cameraInfo, jpt3815wDefinition)
+            "TR3818" -> HttpGetBasedCameraControl(cameraInfo, tr3818Definition, TR3818Urls(cameraInfo), TR3818SettingsParser)
+            "JPT3815W"-> HttpGetBasedCameraControl(cameraInfo, jpt3815wDefinition, Jpt3815wUrls(cameraInfo), Jpt3815wSettingsParser)
             else -> throw IllegalStateException("Camera type is invalid: ${cameraConfig.type}")
         }
     }

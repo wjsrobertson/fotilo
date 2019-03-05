@@ -1,11 +1,9 @@
 package net.ylophones.fotilo.cameras
 
-import net.ylophones.fotilo.CameraControl
 import net.ylophones.fotilo.CameraInfo
 import net.ylophones.fotilo.config.ConfigFile
 import org.springframework.stereotype.Component
 import java.lang.IllegalStateException
-import java.lang.UnsupportedOperationException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
@@ -26,7 +24,8 @@ class CameraConnectionFactory(private val configFile: ConfigFile) {
         }
 
         return when (cameraConfig.type) {
-            "TR3818" -> TR3818CameraControl(cameraInfo)
+            "TR3818" -> HttpGetBasedCameraControl(cameraInfo, tr3818Definition)
+            "JPT3815W"-> HttpGetBasedCameraControl(cameraInfo, jpt3815wDefinition)
             else -> throw IllegalStateException("Camera type is invalid: ${cameraConfig.type}")
         }
     }

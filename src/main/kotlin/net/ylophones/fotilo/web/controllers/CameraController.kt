@@ -2,6 +2,7 @@ package net.ylophones.fotilo.web.controllers
 
 import net.ylophones.fotilo.*
 import net.ylophones.fotilo.cameras.CameraConnectionFactory
+import net.ylophones.fotilo.cameras.CameraControl
 import org.apache.commons.io.IOUtils.closeQuietly
 import org.apache.http.entity.InputStreamEntity
 import org.springframework.web.bind.annotation.*

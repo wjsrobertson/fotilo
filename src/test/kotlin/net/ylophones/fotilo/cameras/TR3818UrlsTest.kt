@@ -48,7 +48,7 @@ class TR3818UrlsTest {
     @ParameterizedTest
     @MethodSource("orientationUrls")
     internal fun oritentationUrl(orientation: Orientation, expectedUrl: String) {
-        val url = underTest.oritentationUrl(orientation)
+        val url = underTest.orientationUrl(orientation)
 
         assertThat(url).isEqualTo(expectedUrl)
     }

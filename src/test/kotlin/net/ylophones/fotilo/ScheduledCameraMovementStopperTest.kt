@@ -2,6 +2,7 @@ package net.ylophones.fotilo
 
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import net.ylophones.fotilo.cameras.CameraControl
 import org.junit.jupiter.api.Test
 import java.time.Duration.ofSeconds
 

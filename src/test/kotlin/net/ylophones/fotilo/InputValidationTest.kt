@@ -15,12 +15,13 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.util.stream.Stream
+import net.ylophones.fotilo.checkWithinRange
 
 class InputValidationTest {
 
     @ParameterizedTest
     @MethodSource("inRange")
-    internal fun checkWithinRange(start: Int, end: Int, value: Int) {
+    internal fun checkWhenWithinRange(start: Int, end: Int, value: Int) {
         try {
             checkWithinRange("", value, start, end)
         } catch (e: IllegalArgumentException) {
@@ -30,7 +31,7 @@ class InputValidationTest {
 
     @ParameterizedTest
     @MethodSource("outsideRange")
-    internal fun checkOutsideRange(start: Int, end: Int, value: Int) {
+    internal fun checkWhenOutsideRange(start: Int, end: Int, value: Int) {
         try {
             checkWithinRange("", value, start, end)
             fail("$value was found to be in range $start to $end")

@@ -18,7 +18,7 @@ import org.junit.rules.TemporaryFolder
 import java.nio.file.Files
 
 
-class TR3818CameraControlTest {
+class HttpGetBasedCameraControlIntegrationTest {
 
     private val cameraInfo: CameraInfo = CameraInfo("example.com", 80, "peter", "parker")
     private val httpclient: CloseableHttpClient = mock()
@@ -26,7 +26,7 @@ class TR3818CameraControlTest {
     private val stopper: ScheduledCameraMovementStopper = ScheduledCameraMovementStopper()
     private val settingsPageParser: TR3818SettingsParser = TR3818SettingsParser
 
-    private val underTest: TR3818CameraControl = TR3818CameraControl(cameraInfo, httpclient, urls, stopper, settingsPageParser)
+    private val underTest: HttpGetBasedCameraControl = HttpGetBasedCameraControl(cameraInfo, tr3818Definition, urls, settingsPageParser, httpclient, stopper)
 
     @Rule
     @JvmField var folder = TemporaryFolder()

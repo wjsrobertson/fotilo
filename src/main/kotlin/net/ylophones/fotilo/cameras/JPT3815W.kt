@@ -20,10 +20,38 @@ val jpt3815wDefinition = CameraDefinition(
         orientationControlType = OrientationControlType.VERTICAL_AND_HORIZONTAL_FLIP
 )
 
+class Jpt3815w2014Urls(private val cameraInfo: CameraInfo) : Jpt3815wUrls(cameraInfo) {
+    override fun videoStreamUrl() = with(cameraInfo) {
+        "http://$host:$port/vjpeg.v"
+    }
+
+    override fun controlParamUrl(command: Int, value: Int) = with(cameraInfo) {
+        "http://$host:$port/cgi-bin/control.cgi?action=cmd&code=$command&value=$value"
+    }
+
+    override fun snapshotUrl(): String = with(cameraInfo) {
+        "http://$host:$port/snapshot.cgi"
+    }
+}
+
+class Jpt3815w2013Urls(private val cameraInfo: CameraInfo) : Jpt3815wUrls(cameraInfo) {
+    override fun videoStreamUrl() = with(cameraInfo) {
+        "http://$host:$port/media/?action=stream"
+    }
+
+    override fun controlParamUrl(command: Int, value: Int) = with(cameraInfo) {
+        "http://$host:$port/media/?action=cmd&code=$command&value=$value"
+    }
+
+    override fun snapshotUrl() = with(cameraInfo) {
+        "http://$host:$port/media/?action=snapshot"
+    }
+}
+
 /**
  * Provides URLs for operations and data retrieval from the Jpt3815wUrls web interface
  */
-class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
+abstract class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
 
     private enum class Command(val id: Int) {
         SET_SPEED(1),
@@ -43,16 +71,10 @@ class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
         HORIZONTAL(13)
     }
 
-    override fun videoStreamUrl() = with(cameraInfo) {
-        "http://$host:$port/vjpeg.v"
-    }
+    abstract fun controlParamUrl(command: Int, value: Int): String
 
     override fun settingsPageUrl() = with(cameraInfo) {
         "http://$host:$port/video/livesp.asp"
-    }
-
-    override fun snapshotUrl(): String = with(cameraInfo) {
-        "http://$host:$port/snapshot.cgi"
     }
 
     override fun moveUrl(direction: Direction): String {
@@ -128,10 +150,6 @@ class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
 
     override fun infraRedLightUrl(on: Boolean): String {
         throw UnsupportedOperationException()
-    }
-
-    private fun controlParamUrl(command: Int, value: Int) = with(cameraInfo) {
-        "http://$host:$port/cgi-bin/control.cgi?action=cmd&code=$command&value=$value"
     }
 
     private fun checkWithinRange(value: Int, range: SettingsRange, fieldName: String = "") =

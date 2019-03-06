@@ -83,7 +83,7 @@ class TR3818Urls(private val cameraInfo: CameraInfo): CameraUrls {
         return cameraControlParamUrl(Tr3818Param.PARAM_ORIENTATION.id, code)
     }
 
-    override fun stopUrl() = createDecoderControlCommandUrl(Tr3818Command.COMMAND_STOP.id)
+    override fun stopUrl(lastDirection: Direction) = createDecoderControlCommandUrl(Tr3818Command.COMMAND_STOP.id)
 
     override fun panTiltSpeedUrl(speed: Int): String {
         checkWithinRange(speed, tr3818Definition.panTiltSpeedRange, "speed")

@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils
 import java.io.*
 import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.locks.ReentrantLock
 
 val jpt3815wDefinition = CameraDefinition(
         cameraManufacturer = "Tenvis",
@@ -25,16 +26,16 @@ val jpt3815wDefinition = CameraDefinition(
 class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
 
     private enum class Command(val id: Int) {
-        COMMAND_SPEED(1),
-        COMMAND_START(2),
-        COMMAND_STOP(3),
-        COMMAND_SET_CONTRAST(5),
-        COMMAND_SET_BRIGHTNESS(6),
-        COMMAND_RESOLUTION(7),
-        COMMAND_FRAME_RATE(8),
-        COMMAND_ROTATION(9),
-        COMMAND_SET_LOCATION(11),
-        COMMAND_GOTO_LOCATION(13)
+        SET_SPEED(1),
+        START(2),
+        STOP(3),
+        SET_CONTRAST(5),
+        SET_BRIGHTNESS(6),
+        SET_RESOLUTION(7),
+        SET_FRAME_RATE(8),
+        SET_ROTATION(9),
+        STORE_LOCATION(11),
+        GOTO_LOCATION(13)
     }
 
     private enum class RotationValue(val value: Int) {
@@ -55,7 +56,13 @@ class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
     }
 
     override fun moveUrl(direction: Direction): String {
-        val directionValue = when (direction) {
+        val directionValue = getDirectionCommandValue(direction)
+
+        return controlParamUrl(Command.START.id, directionValue)
+    }
+
+    private fun getDirectionCommandValue(direction: Direction): Int {
+        return when (direction) {
             Direction.UP -> 1
             Direction.UP_LEFT -> 6
             Direction.UP_RIGHT -> 5
@@ -65,25 +72,26 @@ class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
             Direction.DOWN_LEFT -> 8
             Direction.RIGHT -> 3
         }
-
-        return controlParamUrl(Command.COMMAND_START.id, directionValue)
     }
 
-    override fun stopUrl() = controlParamUrl(Command.COMMAND_STOP.id, 1) // TODO - should be last direction
+    override fun stopUrl(lastDirection: Direction): String {
+        val directionValue = getDirectionCommandValue(lastDirection)
+        return controlParamUrl(Command.STOP.id, directionValue)
+    }
 
     override fun panTiltSpeedUrl(speed: Int): String {
         checkWithinRange(speed, jpt3815wDefinition.panTiltSpeedRange, "speed")
-        return controlParamUrl(Command.COMMAND_SPEED.id, speed)
+        return controlParamUrl(Command.SET_SPEED.id, speed)
     }
 
     override fun brightnessUrl(brightness: Int): String {
         checkWithinRange(brightness, jpt3815wDefinition.brightnessRange, "brightness")
-        return controlParamUrl(Command.COMMAND_SET_BRIGHTNESS.id, brightness)
+        return controlParamUrl(Command.SET_BRIGHTNESS.id, brightness)
     }
 
     override fun contrastUrl(contrast: Int): String {
         checkWithinRange(contrast, jpt3815wDefinition.contrastRange, "contrast")
-        return controlParamUrl(Command.COMMAND_SET_CONTRAST.id, contrast)
+        return controlParamUrl(Command.SET_CONTRAST.id, contrast)
     }
 
     override fun resolutionUrl(resolution: String): String {
@@ -93,29 +101,29 @@ class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
             else -> 41943520 // "640x480"
         }
 
-        return controlParamUrl(Command.COMMAND_RESOLUTION.id, resolutionValue)
+        return controlParamUrl(Command.SET_RESOLUTION.id, resolutionValue)
     }
 
     override fun flipUrl(rotation: Rotation): String {
-        return when(rotation) {
-            Rotation.VERTICAL -> controlParamUrl(Command.COMMAND_ROTATION.id, RotationValue.VERTICAL.value)
-            Rotation.HORIZONTAL -> controlParamUrl(Command.COMMAND_ROTATION.id, RotationValue.HORIZONTAL.value)
+        return when (rotation) {
+            Rotation.VERTICAL -> controlParamUrl(Command.SET_ROTATION.id, RotationValue.VERTICAL.value)
+            Rotation.HORIZONTAL -> controlParamUrl(Command.SET_ROTATION.id, RotationValue.HORIZONTAL.value)
         }
     }
 
     override fun storeLocationUrl(location: Int): String {
         checkWithinRange(location, jpt3815wDefinition.locationRange, "location")
-        return controlParamUrl(Command.COMMAND_SET_LOCATION.id, location)
+        return controlParamUrl(Command.STORE_LOCATION.id, location)
     }
 
     override fun gotoLocationUrl(location: Int): String {
         checkWithinRange(location, jpt3815wDefinition.locationRange, "location")
-        return controlParamUrl(Command.COMMAND_GOTO_LOCATION.id, location)
+        return controlParamUrl(Command.GOTO_LOCATION.id, location)
     }
 
     override fun frameRateUrl(fps: Int): String {
         checkWithinRange(fps, jpt3815wDefinition.frameRateRange, "frame rate")
-        return controlParamUrl(Command.COMMAND_FRAME_RATE.id, fps)
+        return controlParamUrl(Command.SET_FRAME_RATE.id, fps)
     }
 
     override fun infraRedLightUrl(on: Boolean): String {
@@ -132,7 +140,7 @@ class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
 
 object Jpt3815wSettingsParser : SettingsParser {
 
-    private enum class Jpt3815wSetting(val regex: Regex, val default: Int, val transform: (Int) -> Int = {it}) {
+    private enum class Jpt3815wSetting(val regex: Regex, val default: Int, val transform: (Int) -> Int = { it }) {
         FrameRate(".*document\\.getElementById\\(\"camFPS\"\\)\\.value = (\\d+).*".toRegex(), 5),
         Brightness(".*sbar_pos\\('pos_brig', (\\d+).*".toRegex(), 5, { (255 * (it.toFloat() / 10)).toInt() }),
         Contrast("^sbar_pos\\('pos_cntr', (\\d+).*".toRegex(), 3),
@@ -165,7 +173,7 @@ object Jpt3815wSettingsParser : SettingsParser {
                 .map { it!!.groupValues[1] }
                 .firstOrNull()
 
-        return setting.transform (parsedValue?.toInt() ?: setting.default)
+        return setting.transform(parsedValue?.toInt() ?: setting.default)
     }
 
     private fun formatResolution(resolutionId: Int): String = when (resolutionId) {

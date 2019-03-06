@@ -55,7 +55,7 @@ class TR3818UrlsTest {
 
     @Test
     internal fun stopUrl() {
-        val url = underTest.stopUrl()
+        val url = underTest.stopUrl(Direction.LEFT)
 
         assertThat(url).isEqualTo("http://example.com:80/decoder_control.cgi?loginuse=peter&loginpas=parker&command=1&onestep=0")
     }

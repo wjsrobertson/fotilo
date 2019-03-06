@@ -10,6 +10,11 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 interface SettingsParser {
     fun parse(page: InputStream): CameraSettings
@@ -28,7 +33,7 @@ interface CameraUrls {
 
     fun flipUrl(rotation: Rotation): String = throw UnsupportedOperationException()
 
-    fun stopUrl(): String
+    fun stopUrl(lastDirection: Direction): String
 
     fun panTiltSpeedUrl(speed: Int): String
 
@@ -111,6 +116,12 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
                                 private val httpclient: CloseableHttpClient = HttpClientFactory.create(cameraInfo),
                                 private val stopper: ScheduledCameraMovementStopper = ScheduledCameraMovementStopper()) : CameraControl, AutoCloseable {
 
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+    private val movementLock = ReentrantLock()
+
+    private val lastMovementDirection = AtomicReference(Direction.LEFT)
+
     override fun getCameraDefinition(): CameraDefinition = cameraDefinition
 
     @Throws(IOException::class)
@@ -129,7 +140,10 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
 
     @Throws(IOException::class)
     override fun move(direction: Direction) {
-        sendGetRequest(urls.moveUrl(direction))
+        movementLock.withLock {
+            sendGetRequest(urls.moveUrl(direction))
+            lastMovementDirection.updateAndGet { direction }
+        }
     }
 
     @Throws(IOException::class)
@@ -140,7 +154,9 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
 
     @Throws(IOException::class)
     override fun stopMovement() {
-        sendGetRequest(urls.stopUrl())
+        movementLock.withLock {
+            sendGetRequest(urls.stopUrl(lastMovementDirection.get()))
+        }
     }
 
     @Throws(IOException::class)
@@ -210,9 +226,13 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
 
     @Throws(IOException::class)
     private fun sendGetRequest(url: String): Boolean {
+        logger.debug("request to ${cameraDefinition.cameraType}: $url")
         val response = httpclient.execute(HttpGet(url))
         IOUtils.closeQuietly(response)
-        return response.statusLine.statusCode == HttpStatus.SC_OK
+        val statusCode = response?.statusLine?.statusCode
+        logger.debug("camera response: $statusCode")
+
+        return statusCode == HttpStatus.SC_OK
     }
 
     override fun close() {

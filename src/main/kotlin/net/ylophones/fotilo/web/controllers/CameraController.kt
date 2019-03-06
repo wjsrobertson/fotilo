@@ -99,7 +99,12 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
     @RequestMapping(value = ["/{cameraId}/settings/infra-red-light-on/{onOrOff}"], method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun setInfraRedLightOnOrOff(@PathVariable("cameraId") cameraId: String, @PathVariable("onOrOff") onOrOff: String): String {
-        getConnection(cameraId).setInfraRedLightOn(onOrOff.toBoolean())
+        val on = when(onOrOff.toLowerCase()) {
+            "on", "true" -> true
+            else -> false
+        }
+
+        getConnection(cameraId).setInfraRedLightOn(on)
         return SUCCESS
     }
 

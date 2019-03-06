@@ -23,7 +23,6 @@ val tr3818v31114Definition = CameraDefinition(
 class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
 
     private enum class Command(val id: Int) {
-        SET_SPEED(1),
         START(2),
         STOP(3),
         SET_CONTRAST(5),
@@ -34,6 +33,15 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
         STORE_LOCATION(11),
         GOTO_LOCATION(13)
     }
+
+    private enum class Tr3818Orientation(val code: Int) {
+        ORIENTATION_NORMAL(20),
+        ORIENTATION_FLIP(21),
+        ORIENTATION_MIRROR(22),
+        ORIENTATION_FLIP_AND_MIRROR(23)
+    }
+
+    // http://192.168.1.25/cgi-bin/control.cgi?action=cmd&code=1&value=12
 
     private enum class RotationValue(val value: Int) {
         VERTICAL(23),
@@ -76,14 +84,10 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
     }
 
     override fun stopUrl(lastDirection: Direction): String {
-        val directionValue = getDirectionCommandValue(lastDirection)
-        return controlParamUrl(Command.STOP.id, directionValue)
+        return controlParamUrl(Command.STOP.id, 8) // command value is always 8 for stop
     }
 
-    override fun panTiltSpeedUrl(speed: Int): String {
-        checkWithinRange(speed, jpt3815wDefinition.panTiltSpeedRange, "speed")
-        return controlParamUrl(Command.SET_SPEED.id, speed)
-    }
+    override fun panTiltSpeedUrl(speed: Int): String = throw UnsupportedOperationException()
 
     override fun brightnessUrl(brightness: Int): String {
         checkWithinRange(brightness, jpt3815wDefinition.brightnessRange, "brightness")
@@ -105,11 +109,15 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
         return controlParamUrl(Command.SET_RESOLUTION.id, resolutionValue)
     }
 
-    override fun flipUrl(rotation: Rotation): String {
-        return when (rotation) {
-            Rotation.VERTICAL -> controlParamUrl(Command.SET_ROTATION.id, RotationValue.VERTICAL.value)
-            Rotation.HORIZONTAL -> controlParamUrl(Command.SET_ROTATION.id, RotationValue.HORIZONTAL.value)
+    override fun orientationUrl(orientation: Orientation): String {
+        val code = when (orientation) {
+            Orientation.FLIP -> Tr3818Orientation.ORIENTATION_FLIP.code
+            Orientation.FLIP_AND_MIRROR -> Tr3818Orientation.ORIENTATION_FLIP_AND_MIRROR.code
+            Orientation.MIRROR -> Tr3818Orientation.ORIENTATION_MIRROR.code
+            Orientation.NORMAL -> Tr3818Orientation.ORIENTATION_NORMAL.code
         }
+
+        return controlParamUrl(Command.SET_ROTATION.id, code)
     }
 
     override fun storeLocationUrl(location: Int): String {
@@ -135,7 +143,7 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
             net.ylophones.fotilo.checkWithinRange("$fieldName not within range", value, range.min, range.max)
 }
 
-object Jpt3815wSettingsParser : SettingsParser {
+object Tr3818v31114SettingsParser : SettingsParser {
 
     private enum class Jpt3815wSetting(val regex: Regex, val default: Int, val transform: (Int) -> Int = { it }) {
         FrameRate(".*document\\.getElementById\\(\"camFPS\"\\)\\.value = (\\d+).*".toRegex(), 5),

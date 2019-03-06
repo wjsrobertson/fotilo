@@ -1,22 +1,21 @@
+
+***
+https://en.wikipedia.org/wiki/Wowza_Streaming_Engine
+***
+
 get_camera_params.cgi?loginuse=admin&loginpas=admin123
 
 http://192.168.1.25/videostream.cgi?loginuse=admin&loginpas=admin123
 
-
 dd if=3.1.1.1.4.update of=/dev/mtdblock0
 mount -t jffs2 /dev/mtdblock0 /mnt/jffs2
 
-
-http://192.168.1.25/cgi-bin/test.cgi
-
-
-
-
 http://192.168.1.25/camera_control.cgi?loginuse=admin&loginpas=admin123&param=14&value=1
 http://192.168.1.25/camera_control.cgi?user=admin&pwd=admin123&param=14&value=1
-
-
 http://192.168.1.25/camera_control.cgi?loginuse=admin&loginpas=admin123&param=$param&value=$value
+
+
+http://192.168.1.25/cgi-bin/test.cgi
 -------------------------------------------------------------------------------------------------
 
 <param>

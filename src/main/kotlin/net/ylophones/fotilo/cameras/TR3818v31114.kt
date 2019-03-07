@@ -5,7 +5,6 @@ import org.apache.commons.io.IOUtils
 import java.io.*
 import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.locks.ReentrantLock
 
 val tr3818v31114Definition = CameraDefinition(
         cameraManufacturer = "Tenvis",
@@ -35,17 +34,10 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
     }
 
     private enum class Tr3818Orientation(val code: Int) {
-        ORIENTATION_NORMAL(20),
-        ORIENTATION_FLIP(21),
-        ORIENTATION_MIRROR(22),
-        ORIENTATION_FLIP_AND_MIRROR(23)
-    }
-
-    // http://192.168.1.25/cgi-bin/control.cgi?action=cmd&code=1&value=12
-
-    private enum class RotationValue(val value: Int) {
-        VERTICAL(23),
-        HORIZONTAL(13)
+        NORMAL(20),
+        FLIP(21),
+        MIRROR(22),
+        FLIP_AND_MIRROR(23)
     }
 
     override fun videoStreamUrl() = with(cameraInfo) {
@@ -111,10 +103,10 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
 
     override fun orientationUrl(orientation: Orientation): String {
         val code = when (orientation) {
-            Orientation.FLIP -> Tr3818Orientation.ORIENTATION_FLIP.code
-            Orientation.FLIP_AND_MIRROR -> Tr3818Orientation.ORIENTATION_FLIP_AND_MIRROR.code
-            Orientation.MIRROR -> Tr3818Orientation.ORIENTATION_MIRROR.code
-            Orientation.NORMAL -> Tr3818Orientation.ORIENTATION_NORMAL.code
+            Orientation.FLIP -> Tr3818Orientation.FLIP.code
+            Orientation.FLIP_AND_MIRROR -> Tr3818Orientation.FLIP_AND_MIRROR.code
+            Orientation.MIRROR -> Tr3818Orientation.MIRROR.code
+            Orientation.NORMAL -> Tr3818Orientation.NORMAL.code
         }
 
         return controlParamUrl(Command.SET_ROTATION.id, code)
@@ -145,12 +137,12 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
 
 object Tr3818v31114SettingsParser : SettingsParser {
 
-    private enum class Jpt3815wSetting(val regex: Regex, val default: Int, val transform: (Int) -> Int = { it }) {
-        FrameRate(".*document\\.getElementById\\(\"camFPS\"\\)\\.value = (\\d+).*".toRegex(), 5),
-        Brightness(".*sbar_pos\\('pos_brig', (\\d+).*".toRegex(), 5, { (255 * (it.toFloat() / 10)).toInt() }),
-        Contrast("^sbar_pos\\('pos_cntr', (\\d+).*".toRegex(), 3),
-        PanTiltSpeed("var ptz_speed=(\\d+).*".toRegex(), 1),
-        Resolution(".*switch\\((\\d+).*".toRegex(), 32),
+    private enum class Jpt3815wSetting(val regex: Regex, val default: Int) {
+        FrameRate(".*<fps>(\\d+)</fps>.*".toRegex(), 5),
+        Brightness(".*<brightness>(\\d+)</brightness>.*".toRegex(), 5),
+        Contrast(".*<contrast>(\\d+)</contrast>.*".toRegex(), 3),
+        PanTiltSpeed(".*<speed>(\\d+)</speed>.*".toRegex(), 1),
+        Resolution(".*<resolution>(\\d+)</resolution>.*".toRegex(), 32),
     }
 
     override fun parse(page: InputStream): CameraSettings {
@@ -178,7 +170,7 @@ object Tr3818v31114SettingsParser : SettingsParser {
                 .map { it!!.groupValues[1] }
                 .firstOrNull()
 
-        return setting.transform(parsedValue?.toInt() ?: setting.default)
+        return parsedValue?.toInt() ?: setting.default
     }
 
     private fun formatResolution(resolutionId: Int): String = when (resolutionId) {

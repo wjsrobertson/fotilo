@@ -226,11 +226,11 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
 
     @Throws(IOException::class)
     private fun sendGetRequest(url: String): Boolean {
-        logger.debug("request to ${cameraDefinition.cameraType}: $url")
+        logger.info("request to ${cameraDefinition.cameraType}: $url")
         val response = httpclient.execute(HttpGet(url))
         IOUtils.closeQuietly(response)
         val statusCode = response?.statusLine?.statusCode
-        logger.debug("camera response: $statusCode")
+        logger.info("camera response: $statusCode")
 
         return statusCode == HttpStatus.SC_OK
     }

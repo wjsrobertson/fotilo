@@ -23,7 +23,7 @@ class JPW3815WHDUrls(private val cameraInfo: CameraInfo) : CameraUrls {
     override fun videoStreamUrl() = throw UnsupportedOperationException()
 
     private fun controlParamUrl(command: String, attribute: String, value: String, att2: String? = null, val2: String? = null) = with(cameraInfo) {
-        val secondAttr = if (att2 == null || val2 == null) "" else "&cmd=-$att2=$val2"
+        val secondAttr = if (att2 == null || val2 == null) "" else "&-$att2=$val2"
         "http://$host:$port/cgi-bin/hi3510/param.cgi?cmd=$command&-$attribute=$value$secondAttr"
     }
 

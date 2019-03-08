@@ -99,7 +99,7 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
     @RequestMapping(value = ["/{cameraId}/settings/infra-red-light-on/{onOrOff}"], method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun setInfraRedLightOnOrOff(@PathVariable("cameraId") cameraId: String, @PathVariable("onOrOff") onOrOff: String): String {
-        val on = when(onOrOff.toLowerCase()) {
+        val on = when (onOrOff.toLowerCase()) {
             "on", "true" -> true
             else -> false
         }
@@ -108,6 +108,7 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
         return SUCCESS
     }
 
+    /*
     @RequestMapping("/{cameraId}/stream")
     @Throws(IOException::class)
     fun streamVideo(outputStream: OutputStream, response: HttpServletResponse,
@@ -116,15 +117,23 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
         val cameraControl = getConnection(cameraId)
         val cameraResponse = cameraControl.getVideoStream()
 
-        try {
-            val contentTypeValue = cameraResponse.getFirstHeader(CONTENT_TYPE).value
-            response.setHeader(CONTENT_TYPE, contentTypeValue)
+        response.setHeader(CONTENT_TYPE, cameraResponse.mimeType)
 
-            val responseEntity = InputStreamEntity(cameraResponse.entity.content)
-            responseEntity.writeTo(outputStream)
-        } finally {
-            closeQuietly(cameraResponse)
-        }
+        val responseEntity = InputStreamEntity(cameraResponse.stream)
+
+        responseEntity.writeTo(outputStream)
+    }
+    */
+
+    @RequestMapping("/{cameraId}/stream")
+    @Throws(IOException::class)
+    fun streamVideo(outputStream: OutputStream, response: HttpServletResponse,
+                    @PathVariable("cameraId") cameraId: String) {
+
+        response.setHeader(CONTENT_TYPE, "multipart/x-mixed-replace;boundary=fotilo")
+
+        val cameraControl = getConnection(cameraId)
+        cameraControl.streamSnapshots(outputStream)
     }
 
     private fun getConnection(cameraId: String): CameraControl = cameraConnectionFactory.getConnection(cameraId)

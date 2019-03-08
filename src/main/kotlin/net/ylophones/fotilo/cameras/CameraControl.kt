@@ -12,9 +12,12 @@ import java.io.InputStream
 import java.nio.file.Path
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.OutputStream
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+
+data class ContentStream(val mimeType: String, val stream: InputStream)
 
 interface SettingsParser {
     fun parse(page: InputStream): CameraSettings
@@ -54,7 +57,9 @@ interface CameraUrls {
 
 interface CameraControl {
 
-    fun getVideoStream(): CloseableHttpResponse
+    fun getVideoStream(): ContentStream
+
+    fun streamSnapshots(out: OutputStream): Unit = throw UnsupportedOperationException()
 
     fun getCameraSettings(): CameraSettings
 
@@ -125,7 +130,21 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
     override fun getCameraDefinition(): CameraDefinition = cameraDefinition
 
     @Throws(IOException::class)
-    override fun getVideoStream(): CloseableHttpResponse = httpclient.execute(HttpGet(urls.videoStreamUrl()))
+    override fun streamSnapshots(out: OutputStream) {
+        val sreamer = SnapshotMJpegStreamer(httpclient, urls.snapshotUrl(), out)
+        sreamer.stream()
+    }
+
+    @Throws(IOException::class)
+    override fun getVideoStream(): ContentStream {
+        val response = httpclient.execute(HttpGet(urls.videoStreamUrl()))
+
+        if (response?.statusLine?.statusCode != HttpStatus.SC_OK) {
+            throw IllegalStateException("invalid response from camera")
+        }
+
+        return ContentStream(response.getFirstHeader("Content-Type").value, response.entity.content)
+    }
 
     @Throws(IOException::class)
     override fun getCameraSettings(): CameraSettings {

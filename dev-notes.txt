@@ -1,0 +1,17 @@
+multipart/x-mixed-replace;boundary=ipcamera
+
+video/x-jpeg
+
+
+
+
+HTTP/1.1 200 OK
+Server: ImagiaTek
+Accept-Ranges: bytes
+
+Content-Type: multipart/x-mixed-replace;boundary=fotilo
+
+--fotilo
+Content-Type: image/jpeg
+Content-Length: 3648
+

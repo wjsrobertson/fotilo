@@ -15,7 +15,8 @@ val jptw3815WHDDefinition = CameraDefinition(
         locationRange = SettingsRange(0, 7),
         supportedResolutions = arrayListOf("640x480", "1280x720"),
         supportsInfraRedCut = true,
-        orientationControlType = OrientationControlType.EXPLICIT
+        orientationControlType = OrientationControlType.EXPLICIT,
+        supportsVideoStreaming = false
 )
 
 class JPW3815WHDUrls(private val cameraInfo: CameraInfo) : CameraUrls {
@@ -28,7 +29,7 @@ class JPW3815WHDUrls(private val cameraInfo: CameraInfo) : CameraUrls {
     }
 
     override fun snapshotUrl(): String = with(cameraInfo) {
-        "http://$host:$port/snapshot.cgi"
+        "http://$host:$port/tmpfs/snap.jpg"
     }
 
     override fun settingsPageUrl() = with(cameraInfo) {
@@ -85,7 +86,7 @@ class JPW3815WHDUrls(private val cameraInfo: CameraInfo) : CameraUrls {
 
     override fun infraRedLightUrl(on: Boolean): String = with(cameraInfo) {
         val onOrOff = if (on) "open" else "closed"
-        return "http//192.168.1.103/cgi-bin/hi3510/setinfrared.cgi?-infraredstat=$onOrOff"
+        return "http://$host:$port/cgi-bin/hi3510/setinfrared.cgi?-infraredstat=$onOrOff"
     }
 
     private fun checkWithinRange(value: Int, range: SettingsRange, fieldName: String = "") =

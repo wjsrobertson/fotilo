@@ -26,7 +26,8 @@ class CameraDefinition(
         val locationRange: SettingsRange,
         val supportedResolutions: List<String>,
         val supportsInfraRedCut: Boolean,
-        val orientationControlType: OrientationControlType
+        val orientationControlType: OrientationControlType,
+        val supportsVideoStreaming: Boolean = true
 )
 
 data class CameraOverview(

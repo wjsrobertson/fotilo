@@ -3,6 +3,7 @@ package net.ylophones.fotilo.web.controllers
 import net.ylophones.fotilo.*
 import net.ylophones.fotilo.cameras.CameraConnectionFactory
 import net.ylophones.fotilo.cameras.CameraControl
+import net.ylophones.fotilo.cameras.ContentStream
 import org.apache.commons.io.IOUtils.closeQuietly
 import org.apache.http.entity.InputStreamEntity
 import org.springframework.web.bind.annotation.*
@@ -108,32 +109,19 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
         return SUCCESS
     }
 
-    /*
     @RequestMapping("/{cameraId}/stream")
     @Throws(IOException::class)
     fun streamVideo(outputStream: OutputStream, response: HttpServletResponse,
                     @PathVariable("cameraId") cameraId: String) {
 
         val cameraControl = getConnection(cameraId)
-        val cameraResponse = cameraControl.getVideoStream()
+        val streamSnapshots: ContentStream = cameraControl.getVideoStream()
 
-        response.setHeader(CONTENT_TYPE, cameraResponse.mimeType)
+        response.setHeader(CONTENT_TYPE, streamSnapshots.mimeType)
 
-        val responseEntity = InputStreamEntity(cameraResponse.stream)
+        val responseEntity = InputStreamEntity(streamSnapshots.stream)
 
         responseEntity.writeTo(outputStream)
-    }
-    */
-
-    @RequestMapping("/{cameraId}/stream")
-    @Throws(IOException::class)
-    fun streamVideo(outputStream: OutputStream, response: HttpServletResponse,
-                    @PathVariable("cameraId") cameraId: String) {
-
-        response.setHeader(CONTENT_TYPE, "multipart/x-mixed-replace;boundary=fotilo")
-
-        val cameraControl = getConnection(cameraId)
-        cameraControl.streamSnapshots(outputStream)
     }
 
     private fun getConnection(cameraId: String): CameraControl = cameraConnectionFactory.getConnection(cameraId)

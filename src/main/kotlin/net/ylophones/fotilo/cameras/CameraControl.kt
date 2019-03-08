@@ -3,7 +3,6 @@ package net.ylophones.fotilo.cameras
 import net.ylophones.fotilo.*
 import org.apache.commons.io.IOUtils
 import org.apache.http.HttpStatus
-import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.CloseableHttpClient
 import java.io.FileOutputStream
@@ -12,7 +11,6 @@ import java.io.InputStream
 import java.nio.file.Path
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.OutputStream
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -58,8 +56,6 @@ interface CameraUrls {
 interface CameraControl {
 
     fun getVideoStream(): ContentStream
-
-    fun streamSnapshots(out: OutputStream): Unit = throw UnsupportedOperationException()
 
     fun getCameraSettings(): CameraSettings
 
@@ -130,13 +126,24 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
     override fun getCameraDefinition(): CameraDefinition = cameraDefinition
 
     @Throws(IOException::class)
-    override fun streamSnapshots(out: OutputStream) {
-        val sreamer = SnapshotMJpegStreamer(httpclient, urls.snapshotUrl(), out)
-        sreamer.stream()
+    override fun getVideoStream(): ContentStream =
+            if (cameraDefinition.supportsVideoStreaming) {
+                getNativeVideoStream()
+            } else {
+                streamSnapshots()
+            }
+
+    @Throws(IOException::class)
+    private fun streamSnapshots(): ContentStream {
+        val streamer = SnapshotMJpegStreamer(httpclient, urls.snapshotUrl())
+        streamer.start()
+        Thread.sleep(1000)
+
+        return ContentStream("multipart/x-mixed-replace;boundary=fotilo", streamer.inputStream)
     }
 
     @Throws(IOException::class)
-    override fun getVideoStream(): ContentStream {
+    private fun getNativeVideoStream(): ContentStream {
         val response = httpclient.execute(HttpGet(urls.videoStreamUrl()))
 
         if (response?.statusLine?.statusCode != HttpStatus.SC_OK) {

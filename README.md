@@ -6,6 +6,8 @@ Fotilo
 
 A proxy server for safely exposing and controlling cheapo webcams.
 
+**WARNING - really hacky, proof of concept code**
+
 Fotilo is written in Kotlin.
 
 ### License

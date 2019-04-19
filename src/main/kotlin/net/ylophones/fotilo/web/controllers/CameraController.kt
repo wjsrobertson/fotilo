@@ -3,6 +3,7 @@ package net.ylophones.fotilo.web.controllers
 import net.ylophones.fotilo.*
 import net.ylophones.fotilo.cameras.CameraConnectionFactory
 import net.ylophones.fotilo.cameras.CameraControl
+import net.ylophones.fotilo.cameras.ContentStream
 import org.apache.commons.io.IOUtils.closeQuietly
 import org.apache.http.entity.InputStreamEntity
 import org.springframework.web.bind.annotation.*
@@ -99,7 +100,7 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
     @RequestMapping(value = ["/{cameraId}/settings/infra-red-light-on/{onOrOff}"], method = [RequestMethod.POST])
     @Throws(IOException::class)
     fun setInfraRedLightOnOrOff(@PathVariable("cameraId") cameraId: String, @PathVariable("onOrOff") onOrOff: String): String {
-        val on = when(onOrOff.toLowerCase()) {
+        val on = when (onOrOff.toLowerCase()) {
             "on", "true" -> true
             else -> false
         }
@@ -114,17 +115,13 @@ class CameraController(private val cameraConnectionFactory: CameraConnectionFact
                     @PathVariable("cameraId") cameraId: String) {
 
         val cameraControl = getConnection(cameraId)
-        val cameraResponse = cameraControl.getVideoStream()
+        val streamSnapshots: ContentStream = cameraControl.getVideoStream()
 
-        try {
-            val contentTypeValue = cameraResponse.getFirstHeader(CONTENT_TYPE).value
-            response.setHeader(CONTENT_TYPE, contentTypeValue)
+        response.setHeader(CONTENT_TYPE, streamSnapshots.mimeType)
 
-            val responseEntity = InputStreamEntity(cameraResponse.entity.content)
-            responseEntity.writeTo(outputStream)
-        } finally {
-            closeQuietly(cameraResponse)
-        }
+        val responseEntity = InputStreamEntity(streamSnapshots.stream)
+
+        responseEntity.writeTo(outputStream)
     }
 
     private fun getConnection(cameraId: String): CameraControl = cameraConnectionFactory.getConnection(cameraId)

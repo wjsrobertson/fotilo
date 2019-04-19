@@ -3,7 +3,6 @@ package net.ylophones.fotilo.cameras
 import net.ylophones.fotilo.*
 import org.apache.commons.io.IOUtils
 import org.apache.http.HttpStatus
-import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.CloseableHttpClient
 import java.io.FileOutputStream
@@ -15,6 +14,8 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+
+data class ContentStream(val mimeType: String, val stream: InputStream)
 
 interface SettingsParser {
     fun parse(page: InputStream): CameraSettings
@@ -54,7 +55,7 @@ interface CameraUrls {
 
 interface CameraControl {
 
-    fun getVideoStream(): CloseableHttpResponse
+    fun getVideoStream(): ContentStream
 
     fun getCameraSettings(): CameraSettings
 
@@ -125,7 +126,32 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
     override fun getCameraDefinition(): CameraDefinition = cameraDefinition
 
     @Throws(IOException::class)
-    override fun getVideoStream(): CloseableHttpResponse = httpclient.execute(HttpGet(urls.videoStreamUrl()))
+    override fun getVideoStream(): ContentStream =
+            if (cameraDefinition.supportsVideoStreaming) {
+                getNativeVideoStream()
+            } else {
+                streamSnapshots()
+            }
+
+    @Throws(IOException::class)
+    private fun streamSnapshots(): ContentStream {
+        val streamer = SnapshotMJpegStreamer(httpclient, urls.snapshotUrl())
+        streamer.start()
+        Thread.sleep(1000)
+
+        return ContentStream("multipart/x-mixed-replace;boundary=fotilo", streamer.inputStream)
+    }
+
+    @Throws(IOException::class)
+    private fun getNativeVideoStream(): ContentStream {
+        val response = httpclient.execute(HttpGet(urls.videoStreamUrl()))
+
+        if (response?.statusLine?.statusCode != HttpStatus.SC_OK) {
+            throw IllegalStateException("invalid response from camera")
+        }
+
+        return ContentStream(response.getFirstHeader("Content-Type").value, response.entity.content)
+    }
 
     @Throws(IOException::class)
     override fun getCameraSettings(): CameraSettings {
@@ -226,11 +252,11 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
 
     @Throws(IOException::class)
     private fun sendGetRequest(url: String): Boolean {
-        logger.debug("request to ${cameraDefinition.cameraType}: $url")
+        logger.info("request to ${cameraDefinition.cameraType}: $url")
         val response = httpclient.execute(HttpGet(url))
         IOUtils.closeQuietly(response)
         val statusCode = response?.statusLine?.statusCode
-        logger.debug("camera response: $statusCode")
+        logger.info("camera response: $statusCode")
 
         return statusCode == HttpStatus.SC_OK
     }

@@ -1,9 +1,6 @@
 package net.ylophones.fotilo.cameras
 
-import org.junit.Rule
-import org.mockito.InjectMocks
-import org.mockito.junit.MockitoJUnit
-import org.mockito.junit.MockitoRule
+import net.ylophones.fotilo.cameras.tenvis.Tr3818v31114SettingsParser
 import org.junit.jupiter.api.Test
 
 import org.assertj.core.api.Assertions.assertThat

@@ -1,5 +1,6 @@
 package net.ylophones.fotilo.cameras
 
+import net.ylophones.fotilo.cameras.tenvis.JPW3815WHDSettingsParser
 import org.junit.jupiter.api.Test
 
 import org.assertj.core.api.Assertions.assertThat

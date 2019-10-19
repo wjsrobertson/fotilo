@@ -3,6 +3,9 @@ package net.ylophones.fotilo.cameras
 import com.nhaarman.mockitokotlin2.*
 import net.ylophones.fotilo.CameraInfo
 import net.ylophones.fotilo.ScheduledCameraMovementStopper
+import net.ylophones.fotilo.cameras.tenvis.TR3818SettingsParser
+import net.ylophones.fotilo.cameras.tenvis.TR3818Urls
+import net.ylophones.fotilo.cameras.tenvis.tr3818Definition
 import org.apache.http.HttpEntity
 import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse

@@ -1,6 +1,8 @@
-package net.ylophones.fotilo.cameras
+package net.ylophones.fotilo.cameras.tenvis
 
 import net.ylophones.fotilo.*
+import net.ylophones.fotilo.cameras.CameraUrls
+import net.ylophones.fotilo.cameras.SettingsParser
 import net.ylophones.fotilo.io.parseLines
 import java.io.*
 import java.lang.IllegalArgumentException

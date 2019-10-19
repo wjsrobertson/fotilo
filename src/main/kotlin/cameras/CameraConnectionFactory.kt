@@ -1,6 +1,7 @@
 package net.ylophones.fotilo.cameras
 
 import net.ylophones.fotilo.CameraInfo
+import net.ylophones.fotilo.cameras.tenvis.*
 import net.ylophones.fotilo.config.ConfigFile
 import org.springframework.stereotype.Component
 import java.lang.IllegalStateException
@@ -16,7 +17,8 @@ class CameraConnectionFactory(private val configFile: ConfigFile) {
             = connections.computeIfAbsent(cameraId) { id -> createCameraConnection(id) }
 
     private fun createCameraConnection(cameraId: String): CameraControl {
-        val cameraConfig = configFile.cameras.find { it.id == cameraId }
+        val cameraConfig = configFile.cameras
+                .find { it.id == cameraId }
                 ?: throw IllegalArgumentException("Invalid camera ID $cameraId")
 
         val cameraInfo = with(cameraConfig) {

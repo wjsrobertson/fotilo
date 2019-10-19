@@ -6,7 +6,6 @@ import org.apache.http.HttpStatus
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.CloseableHttpClient
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
 import org.slf4j.Logger
@@ -61,50 +60,35 @@ interface CameraControl {
 
     fun getCameraDefinition(): CameraDefinition
 
-    @Throws(IOException::class)
     fun getCameraOverview(): CameraOverview = CameraOverview(getCameraSettings(), getCameraDefinition())
 
-    @Throws(IOException::class)
     fun move(direction: Direction)
 
-    @Throws(IOException::class)
     fun move(direction: Direction, duration: Int)
 
-    @Throws(IOException::class)
     fun stopMovement()
 
-    @Throws(IOException::class)
     fun saveSnapshot(path: Path)
 
-    @Throws(IOException::class)
     fun setPanTiltSpeed(speed: Int)
 
-    @Throws(IOException::class)
     fun setBrightness(brightness: Int)
 
-    @Throws(IOException::class)
     fun setContrast(contrast: Int)
 
-    @Throws(IOException::class)
     fun setResolution(resolution: String)
 
-    @Throws(IOException::class)
     fun flip(rotation: Rotation)
 
-    @Throws(IOException::class)
     fun storeLocation(location: Int)
 
-    @Throws(IOException::class)
     fun gotoLocation(location: Int)
 
-    @Throws(IOException::class)
     fun setFrameRate(fps: Int)
 
-    @Throws(IOException::class)
     fun setInfraRedLightOn(on: Boolean)
 
-    @Throws(IOException::class)
-    fun oritentation(orientation: Orientation)
+    fun orientation(orientation: Orientation)
 }
 
 /**
@@ -125,15 +109,12 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
 
     override fun getCameraDefinition(): CameraDefinition = cameraDefinition
 
-    @Throws(IOException::class)
     override fun getVideoStream(): ContentStream =
-            if (cameraDefinition.supportsVideoStreaming) {
+            if (cameraDefinition.supportsVideoStreaming)
                 getNativeVideoStream()
-            } else {
+             else
                 streamSnapshots()
-            }
 
-    @Throws(IOException::class)
     private fun streamSnapshots(): ContentStream {
         val streamer = SnapshotMJpegStreamer(httpclient, urls.snapshotUrl())
         streamer.start()
@@ -142,18 +123,14 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
         return ContentStream("multipart/x-mixed-replace;boundary=fotilo", streamer.inputStream)
     }
 
-    @Throws(IOException::class)
     private fun getNativeVideoStream(): ContentStream {
         val response = httpclient.execute(HttpGet(urls.videoStreamUrl()))
 
-        if (response?.statusLine?.statusCode != HttpStatus.SC_OK) {
-            throw IllegalStateException("invalid response from camera")
-        }
+        check(response?.statusLine?.statusCode == HttpStatus.SC_OK) { "invalid response from camera" }
 
         return ContentStream(response.getFirstHeader("Content-Type").value, response.entity.content)
     }
 
-    @Throws(IOException::class)
     override fun getCameraSettings(): CameraSettings {
         val response = httpclient.execute(HttpGet(urls.settingsPageUrl()))
         try {
@@ -164,7 +141,6 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
         }
     }
 
-    @Throws(IOException::class)
     override fun move(direction: Direction) {
         movementLock.withLock {
             sendGetRequest(urls.moveUrl(direction))
@@ -172,70 +148,57 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
         }
     }
 
-    @Throws(IOException::class)
     override fun move(direction: Direction, duration: Int) {
         move(direction)
         stopper.stopMovementAfterTime(this, duration)
     }
 
-    @Throws(IOException::class)
     override fun stopMovement() {
         movementLock.withLock {
             sendGetRequest(urls.stopUrl(lastMovementDirection.get()))
         }
     }
 
-    @Throws(IOException::class)
     override fun setPanTiltSpeed(speed: Int) {
         sendGetRequest(urls.panTiltSpeedUrl(speed))
     }
 
-    @Throws(IOException::class)
     override fun setBrightness(brightness: Int) {
         sendGetRequest(urls.brightnessUrl(brightness))
     }
 
-    @Throws(IOException::class)
     override fun setContrast(contrast: Int) {
         sendGetRequest(urls.contrastUrl(contrast))
     }
 
-    @Throws(IOException::class)
     override fun setResolution(resolution: String) {
         sendGetRequest(urls.resolutionUrl(resolution))
     }
 
-    @Throws(IOException::class)
     override fun flip(rotation: Rotation) {
         sendGetRequest(urls.flipUrl(rotation))
     }
 
-    @Throws(IOException::class)
     override fun storeLocation(location: Int) {
         sendGetRequest(urls.storeLocationUrl(location))
     }
 
-    @Throws(IOException::class)
     override fun gotoLocation(location: Int) {
         sendGetRequest(urls.gotoLocationUrl(location))
     }
 
-    @Throws(IOException::class)
     override fun setFrameRate(fps: Int) {
         sendGetRequest(urls.frameRateUrl(fps))
     }
 
-    @Throws(IOException::class)
     override fun setInfraRedLightOn(on: Boolean) {
         sendGetRequest(urls.infraRedLightUrl(on))
     }
 
-    @Throws(IOException::class)
-    override fun oritentation(orientation: Orientation) {
+    override fun orientation(orientation: Orientation) {
         sendGetRequest(urls.orientationUrl(orientation))
     }
 
-    @Throws(IOException::class)
     override fun saveSnapshot(path: Path): Unit = with(cameraInfo) {
         val response = httpclient.execute(HttpGet(urls.snapshotUrl()))
         try {
@@ -250,7 +213,6 @@ class HttpGetBasedCameraControl(private val cameraInfo: CameraInfo,
         }
     }
 
-    @Throws(IOException::class)
     private fun sendGetRequest(url: String): Boolean {
         logger.info("request to ${cameraDefinition.cameraType}: $url")
         val response = httpclient.execute(HttpGet(url))

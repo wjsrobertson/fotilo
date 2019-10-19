@@ -4,6 +4,7 @@ import junit.framework.Assert.fail
 import net.ylophones.fotilo.CameraInfo
 import net.ylophones.fotilo.Direction
 import net.ylophones.fotilo.Orientation
+import net.ylophones.fotilo.cameras.tenvis.TR3818Urls
 import org.junit.jupiter.api.Test
 
 import org.assertj.core.api.Assertions.assertThat

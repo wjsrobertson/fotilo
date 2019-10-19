@@ -71,3 +71,14 @@ enum class Orientation {
 }
 
 data class CameraInfo(val host: String, val port: Int, val user: String, val pass: String)
+
+interface RegexParseableCameraSetting {
+    val default: String
+    val regex: Regex
+
+    fun extractOrDefault(lines: List<String>): String = lines
+            .mapNotNull { regex.find(it) }
+            .filter { it.groupValues.size == 2 }
+            .map { it.groupValues[1] }
+            .firstOrNull() ?: default
+}

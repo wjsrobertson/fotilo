@@ -1,11 +1,11 @@
-package net.ylophones.fotilo.cameras
+package net.ylophones.fotilo.cameras.tenvis
 
 import net.ylophones.fotilo.*
+import net.ylophones.fotilo.cameras.CameraUrls
+import net.ylophones.fotilo.cameras.SettingsParser
 import net.ylophones.fotilo.io.parseLines
-import org.apache.commons.io.IOUtils
 import java.io.*
 import java.lang.IllegalArgumentException
-import java.nio.charset.StandardCharsets
 
 val jpt3815wDefinition = CameraDefinition(
         cameraManufacturer = "Tenvis",

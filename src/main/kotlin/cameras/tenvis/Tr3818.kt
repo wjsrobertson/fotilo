@@ -1,6 +1,7 @@
 package net.ylophones.fotilo.cameras
 
 import net.ylophones.fotilo.*
+import net.ylophones.fotilo.io.parseLines
 import org.apache.commons.io.IOUtils
 import java.io.*
 import java.nio.charset.StandardCharsets
@@ -140,7 +141,7 @@ class TR3818Urls(private val cameraInfo: CameraInfo): CameraUrls {
     }
 
     private fun checkWithinRange(value: Int, range: SettingsRange, fieldName: String = "") =
-            net.ylophones.fotilo.checkWithinRange("$fieldName not within range", value, range.min, range.max)
+            checkWithinRange("$fieldName not within range", value, range.min, range.max)
 }
 
 
@@ -169,11 +170,6 @@ object TR3818SettingsParser : SettingsParser {
                 asBoolean(settings, Tr3818Setting.InfraRedCut),
                 formatResolution(settings[Tr3818Setting.Resolution.key])
         )
-    }
-
-    private fun parseLines(page: InputStream): List<String> {
-        val reader = BufferedReader(InputStreamReader(page, StandardCharsets.UTF_8))
-        return IOUtils.readLines(reader)
     }
 
     private fun stripSuffix(part: String) = part.substring(0, part.length - 1)

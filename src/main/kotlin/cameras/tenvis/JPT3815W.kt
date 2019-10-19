@@ -1,11 +1,11 @@
 package net.ylophones.fotilo.cameras
 
 import net.ylophones.fotilo.*
+import net.ylophones.fotilo.io.parseLines
 import org.apache.commons.io.IOUtils
 import java.io.*
 import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.locks.ReentrantLock
 
 val jpt3815wDefinition = CameraDefinition(
         cameraManufacturer = "Tenvis",
@@ -148,12 +148,10 @@ abstract class Jpt3815wUrls(private val cameraInfo: CameraInfo) : CameraUrls {
         return controlParamUrl(Command.SET_FRAME_RATE.id, fps)
     }
 
-    override fun infraRedLightUrl(on: Boolean): String {
-        throw UnsupportedOperationException()
-    }
+    override fun infraRedLightUrl(on: Boolean): String = throw UnsupportedOperationException()
 
     private fun checkWithinRange(value: Int, range: SettingsRange, fieldName: String = "") =
-            net.ylophones.fotilo.checkWithinRange("$fieldName not within range", value, range.min, range.max)
+            checkWithinRange("$fieldName not within range", value, range.min, range.max)
 }
 
 object Jpt3815wSettingsParser : SettingsParser {
@@ -179,19 +177,14 @@ object Jpt3815wSettingsParser : SettingsParser {
         )
     }
 
-    private fun parseLines(page: InputStream): List<String> {
-        val reader = BufferedReader(InputStreamReader(page, StandardCharsets.UTF_8))
-        return IOUtils.readLines(reader)
-    }
-
     private fun asInt(lines: List<String>, setting: Jpt3815wSetting): Int {
-        val parsedValue = lines
-                .map { setting.regex.find(it) }
-                .filter { it?.groupValues?.size == 2 }
-                .map { it!!.groupValues[1] }
-                .firstOrNull()
+        val value = lines
+                .mapNotNull { setting.regex.find(it) }
+                .filter { it.groupValues.size == 2 }
+                .map { it.groupValues[1].toInt() }
+                .firstOrNull() ?: setting.default
 
-        return setting.transform(parsedValue?.toInt() ?: setting.default)
+        return setting.transform(value)
     }
 
     private fun formatResolution(resolutionId: Int): String = when (resolutionId) {

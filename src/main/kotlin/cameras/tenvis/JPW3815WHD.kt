@@ -1,9 +1,8 @@
 package net.ylophones.fotilo.cameras
 
 import net.ylophones.fotilo.*
-import org.apache.commons.io.IOUtils
+import net.ylophones.fotilo.io.parseLines
 import java.io.*
-import java.nio.charset.StandardCharsets
 
 val jptw3815WHDDefinition = CameraDefinition(
         cameraManufacturer = "Tenvis",
@@ -90,12 +89,12 @@ class JPW3815WHDUrls(private val cameraInfo: CameraInfo) : CameraUrls {
     }
 
     private fun checkWithinRange(value: Int, range: SettingsRange, fieldName: String = "") =
-            net.ylophones.fotilo.checkWithinRange("$fieldName not within range", value, range.min, range.max)
+            checkWithinRange("$fieldName not within range", value, range.min, range.max)
 }
 
 object JPW3815WHDSettingsParser : SettingsParser {
 
-    private enum class Jpt3815wSetting(val regex: Regex, val default: String) {
+    private enum class Jpt3815wSetting(override val regex: Regex, override val default: String): RegexParseableCameraSetting {
         Brightness(".*var brightness=\"(\\d+)\".*".toRegex(), "50"),
         Contrast(".*var contrast=\"(\\d+)\".*".toRegex(), "50"),
         InfraRedCut("var display_mode=\"(\\d+)\".*".toRegex(), "0") // off = 1, on = 0
@@ -106,25 +105,10 @@ object JPW3815WHDSettingsParser : SettingsParser {
 
         return CameraSettings(
                 0,
-                extract(lines, Jpt3815wSetting.Brightness).toInt(),
-                extract(lines, Jpt3815wSetting.Contrast).toInt(),
+                Jpt3815wSetting.Brightness.extractOrDefault(lines).toInt(),
+                Jpt3815wSetting.Contrast.extractOrDefault(lines).toInt(),
                 0,
-                extract(lines, Jpt3815wSetting.Contrast) == "0",
+                Jpt3815wSetting.Contrast.extractOrDefault(lines) == "0",
                 "1280x720")
-    }
-
-    private fun parseLines(page: InputStream): List<String> {
-        val reader = BufferedReader(InputStreamReader(page, StandardCharsets.UTF_8))
-        return IOUtils.readLines(reader)
-    }
-
-    private fun extract(lines: List<String>, setting: Jpt3815wSetting): String {
-        val parsedValue = lines
-                .map { setting.regex.find(it) }
-                .filter { it?.groupValues?.size == 2 }
-                .map { it!!.groupValues[1] }
-                .firstOrNull()
-
-        return parsedValue ?: setting.default
     }
 }

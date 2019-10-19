@@ -1,10 +1,9 @@
 package net.ylophones.fotilo.cameras
 
 import net.ylophones.fotilo.*
-import org.apache.commons.io.IOUtils
+import net.ylophones.fotilo.io.parseLines
 import java.io.*
 import java.lang.IllegalArgumentException
-import java.nio.charset.StandardCharsets
 
 val tr3818v31114Definition = CameraDefinition(
         cameraManufacturer = "Tenvis",
@@ -19,7 +18,7 @@ val tr3818v31114Definition = CameraDefinition(
         orientationControlType = OrientationControlType.VERTICAL_AND_HORIZONTAL_FLIP
 )
 
-class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
+class TR3818v31114Urls(private val cameraInfo: CameraInfo) : CameraUrls {
 
     private enum class Command(val id: Int) {
         START(2),
@@ -132,51 +131,36 @@ class TR3818v31114Urls(private val cameraInfo: CameraInfo): CameraUrls  {
     }
 
     private fun checkWithinRange(value: Int, range: SettingsRange, fieldName: String = "") =
-            net.ylophones.fotilo.checkWithinRange("$fieldName not within range", value, range.min, range.max)
+            checkWithinRange("$fieldName not within range", value, range.min, range.max)
 }
 
 object Tr3818v31114SettingsParser : SettingsParser {
 
-    private enum class Jpt3815wSetting(val regex: Regex, val default: Int) {
-        FrameRate(".*<fps>(\\d+)</fps>.*".toRegex(), 5),
-        Brightness(".*<brightness>(\\d+)</brightness>.*".toRegex(), 5),
-        Contrast(".*<contrast>(\\d+)</contrast>.*".toRegex(), 3),
-        PanTiltSpeed(".*<speed>(\\d+)</speed>.*".toRegex(), 1),
-        Resolution(".*<resolution>(\\d+)</resolution>.*".toRegex(), 32),
+    private enum class Jpt3815wSetting(override val regex: Regex, override val default: String) : RegexParseableCameraSetting {
+        FrameRate(".*<fps>(\\d+)</fps>.*".toRegex(), "5"),
+        Brightness(".*<brightness>(\\d+)</brightness>.*".toRegex(), "5"),
+        Contrast(".*<contrast>(\\d+)</contrast>.*".toRegex(), "3"),
+        PanTiltSpeed(".*<speed>(\\d+)</speed>.*".toRegex(), "1"),
+        Resolution(".*<resolution>(\\d+)</resolution>.*".toRegex(), "32"),
     }
 
     override fun parse(page: InputStream): CameraSettings {
         val lines = parseLines(page)
 
         return CameraSettings(
-                asInt(lines, Jpt3815wSetting.FrameRate),
-                asInt(lines, Jpt3815wSetting.Brightness),
-                asInt(lines, Jpt3815wSetting.Contrast),
-                asInt(lines, Jpt3815wSetting.PanTiltSpeed),
+                Jpt3815wSetting.FrameRate.extractOrDefault(lines).toInt(),
+                Jpt3815wSetting.Brightness.extractOrDefault(lines).toInt(),
+                Jpt3815wSetting.Contrast.extractOrDefault(lines).toInt(),
+                Jpt3815wSetting.PanTiltSpeed.extractOrDefault(lines).toInt(),
                 false,
-                formatResolution(asInt(lines, Jpt3815wSetting.Resolution))
+                formatResolution(Jpt3815wSetting.Resolution.extractOrDefault(lines))
         )
     }
 
-    private fun parseLines(page: InputStream): List<String> {
-        val reader = BufferedReader(InputStreamReader(page, StandardCharsets.UTF_8))
-        return IOUtils.readLines(reader)
-    }
-
-    private fun asInt(lines: List<String>, setting: Jpt3815wSetting): Int {
-        val parsedValue = lines
-                .map { setting.regex.find(it) }
-                .filter { it?.groupValues?.size == 2 }
-                .map { it!!.groupValues[1] }
-                .firstOrNull()
-
-        return parsedValue?.toInt() ?: setting.default
-    }
-
-    private fun formatResolution(resolutionId: Int): String = when (resolutionId) {
-        32 -> "640x480"
-        8 -> "320x240"
-        2 -> "160x120"
+    private fun formatResolution(resolutionId: String): String = when (resolutionId) {
+        "32" -> "640x480"
+        "8" -> "320x240"
+        "2" -> "160x120"
         else -> throw IllegalArgumentException("unrecognised resolution")
     }
 }

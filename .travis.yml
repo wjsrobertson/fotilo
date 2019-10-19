@@ -4,4 +4,4 @@ jdk:
   - oraclejdk11
 
 after_success:
-  - mvn -DTRAVIS_JOB_ID=$TRAVIS_JOB_ID jacoco:report coveralls:report jacoco:report coveralls:report
+  - bash <(curl -s https://codecov.io/bash)

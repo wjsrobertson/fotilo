@@ -29,7 +29,7 @@
         <junit-jupiter.version>5.4.0</junit-jupiter.version><!-- spring boot override -->
         <assertj.version>3.11.1</assertj.version>
         <mockito.version>2.10.0</mockito.version>
-        <commons.io.version>2.2</commons.io.version>
+        <commons.io.version>2.7</commons.io.version>
         <httpcomponents.version>4.5.10</httpcomponents.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
     </properties>
